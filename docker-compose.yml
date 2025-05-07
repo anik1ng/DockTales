@@ -1,0 +1,85 @@
+services:
+  php:
+    build:
+      context: ./app/php
+      args:
+        PHP_VERSION: ${PHP_VERSION}
+    volumes:
+      - ./www:/var/www/html
+      - ./config/php/php.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./config/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ./logs/php:/var/log/php
+    environment:
+      - "DB_HOST=mysql"
+      - "DB_USERNAME=${DB_USERNAME}"
+      - "DB_PASSWORD=${DB_PASSWORD}"
+      - "DB_DATABASE=${DB_DATABASE}"
+      - "APP_URL=https://${DOMAIN_NAME}"
+      - "PHP_IDE_CONFIG=serverName=${DOMAIN_NAME}"
+      - "XDEBUG_CONFIG=client_host=host.docker.internal"
+    networks:
+      - app-network
+    depends_on:
+      - mysql
+
+  nginx:
+    image: nginx:${NGINX_VERSION}
+    ports:
+      - "${NGINX_HTTP_PORT}:80"
+      - "${NGINX_HTTPS_PORT}:443"
+    volumes:
+      - ./www:/var/www/html
+      - ./config/nginx/:/etc/nginx/conf.d/
+      - ./logs/nginx:/var/log/nginx
+    networks:
+      - app-network
+    depends_on:
+      - php
+    hostname: ${DOMAIN_NAME}
+
+  mysql:
+    build:
+      context: ./app/mysql
+      args:
+        MYSQL_VERSION: ${MYSQL_VERSION}
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./config/mysql/my.cnf:/etc/mysql/my.cnf
+      - ./logs/mysql:/var/log/mysql
+    environment:
+      - "MYSQL_DATABASE=${DB_DATABASE}"
+      - "MYSQL_ROOT_PASSWORD=${DB_PASSWORD}"
+    networks:
+      - app-network
+
+  node:
+    image: node:${NODE_VERSION}
+    volumes:
+      - ./www:/var/www/html
+      - ./www/themes/default/node_modules:/var/www/html/themes/default/node_modules
+    working_dir: /var/www/html/themes/default
+    ports:
+      - "${NODE_PORT}:5173"
+    command: sh -c "npm install && npx vite --host 0.0.0.0"
+    networks:
+      - app-network
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+  # Redis service (optional)
+  redis:
+    image: redis:${REDIS_VERSION}
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - app-network
+    profiles:
+      - ${USE_REDIS:-disabled}
+
+networks:
+  app-network:
+    driver: bridge
