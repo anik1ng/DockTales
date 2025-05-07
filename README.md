@@ -19,6 +19,7 @@ DockTales is a lightweight and user-friendly Docker environment manager designed
 
 - Docker Engine
 - Docker Compose
+- Make (usually pre-installed on macOS/Linux)
 
 ## ⚡ Quick Start
 
@@ -37,7 +38,7 @@ DockTales is a lightweight and user-friendly Docker environment manager designed
 
 4. Start the environment:
    ```bash
-   ./app/bin/dev.sh start
+   make start
    ```
 
 5. Your development environment is now running! Access it at:
@@ -69,17 +70,34 @@ DB_PORT=3306
 # Optional services
 USE_REDIS=false
 REDIS_VERSION=7.0
+REDIS_PORT=6379
 ```
 
 ## 📋 Available Commands
 
-- `./app/bin/dev.sh start` - Start all containers (with auto-initialization)
-- `./app/bin/dev.sh stop` - Stop all containers
-- `./app/bin/dev.sh restart` - Restart all containers
-- `./app/bin/dev.sh status` - Show status of all containers
-- `./app/bin/dev.sh logs` - Show logs from all containers
-- `./app/bin/dev.sh rebuild` - Rebuild and restart all containers
-- `./app/bin/dev.sh help` - Show help menu
+```
+make [command]
+```
+
+### 📦 Container Management:
+- `make start`     - Start all containers with initialization
+- `make stop`      - Stop all containers
+- `make restart`   - Restart all containers
+- `make status`    - Show status of all containers
+- `make logs`      - Show logs from all containers
+- `make rebuild`   - Rebuild and restart all containers
+
+### 💻 Development Tools:
+- `make exec`      - Open bash shell in PHP container
+- `make artisan cmd="your-command"`   - Run artisan command
+- `make composer cmd="your-command"`  - Run composer command
+- `make npm cmd="your-command"`       - Run npm command in node container
+- `make npx cmd="your-command"`       - Run npx command in node container
+
+### 🔧 Maintenance:
+- `make ssl`       - Regenerate SSL certificates
+- `make clean`     - Remove all project data (with confirmation)
+- `make help`      - Show this help
 
 ## 🗂️ Project Structure
 
@@ -103,8 +121,9 @@ REDIS_VERSION=7.0
 
 /www
 
-.env
+.env.example
 docker-compose.yml
+Makefile
 ```
 
 ## 🤝 Contributing
