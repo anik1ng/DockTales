@@ -1,4 +1,4 @@
-.PHONY: start stop restart status logs rebuild help ssl clean add_hosts remove_hosts init
+.PHONY: start stop restart status logs rebuild help ssl clean add_hosts init
 
 # Load variables from .env
 ifneq (,$(wildcard ./.env))
@@ -38,16 +38,6 @@ add_hosts:
 		echo "✅ Hosts entry added"; \
 	)
 
-# Remove hosts entry
-remove_hosts:
-	@if grep -q "$(DOMAIN_NAME)" /etc/hosts; then \
-		echo "🗑️ Removing hosts entry..."; \
-		sudo sed -i "/$(DOMAIN_NAME)/d" /etc/hosts 2>/dev/null || sudo sed -i "" "/$(DOMAIN_NAME)/d" /etc/hosts 2>/dev/null; \
-		echo "✅ Hosts entry removed"; \
-	else \
-		echo "ℹ️ No hosts entry found for $(DOMAIN_NAME)"; \
-	fi
-
 # Setup SSL certificates
 ssl:
 	@echo "🔒 Checking SSL certificates..."
@@ -70,10 +60,6 @@ ssl:
 stop:
 	@echo "🛑 Stopping containers..."
 	@$(DC) down
-	@read -p "Remove hosts entry for $(DOMAIN_NAME)? [y/N]: " answer; \
-	if [ "$$answer" = "y" ] || [ "$$answer" = "Y" ]; then \
-		$(MAKE) remove_hosts; \
-	fi
 	@echo "✅ Containers stopped!"
 
 # Restart project
